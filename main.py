@@ -7,11 +7,12 @@ from digitclassifier import get_classifier
 from tensorflow.keras.models import load_model
 import os as os
 import cv2
+import matplotlib.pyplot as plt
 
 
 #Load in the model
 
-#model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
+model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
 # Specify canvas parameters in application
 drawing_mode = st.sidebar.selectbox(
     "Drawing tool:", ("freedraw", "point", "line", "rect", "circle", "transform")
@@ -51,9 +52,25 @@ if canvas_result.json_data is not None:
         objects[col] = objects[col].astype("str")
     st.dataframe(objects)
 if st.button("Guess"):
+    #get canvas data and convert it to a numpy array
     canvas_numpy_array = np.array(canvas_result.image_data)
+    #convert it to gray scale
     x = np.dot(canvas_numpy_array[...,:3], [0.2989, 0.5870, 0.1140])
+    #resize image
     x = cv2.resize(x, (28, 28), interpolation=cv2.INTER_AREA)
+    image = x
+    st.write(image.shape)
+    fig = plt.figure(figsize=(28, 28))
+    plt.imshow(x, cmap='gray')
+    st.write(fig)
+    #expand to correct shape
+    #x = np.expand_dims(x/255,2)
+    x = np.expand_dims(x,0)
     st.write(x.shape)
+    #make prediction
+    y_pred = model.predict(x)
+    #y_pred = np.argmax(y_pred, axis=1)
+    st.write(y_pred)
+
 
         #make prediction
