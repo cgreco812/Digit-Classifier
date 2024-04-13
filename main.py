@@ -3,9 +3,18 @@ from PIL import Image
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 import numpy as np
+from digitclassifier import get_classifier
+from tensorflow.keras.models import load_model
+import os as os
+import cv2
+
+
+#Load in the model
+
+#model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
 # Specify canvas parameters in application
 drawing_mode = st.sidebar.selectbox(
-    "Drawing tool:", ("point", "freedraw", "line", "rect", "circle", "transform")
+    "Drawing tool:", ("freedraw", "point", "line", "rect", "circle", "transform")
 )
 
 stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 3)
@@ -26,7 +35,8 @@ canvas_result = st_canvas(
     background_color=bg_color,
     background_image=Image.open(bg_image) if bg_image else None,
     update_streamlit=realtime_update,
-    height=150,
+    height=280,
+    width=280,
     drawing_mode=drawing_mode,
     point_display_radius=point_display_radius if drawing_mode == 'point' else 0,
     key="canvas",
@@ -42,3 +52,8 @@ if canvas_result.json_data is not None:
     st.dataframe(objects)
 if st.button("Guess"):
     canvas_numpy_array = np.array(canvas_result.image_data)
+    x = np.dot(canvas_numpy_array[...,:3], [0.2989, 0.5870, 0.1140])
+    x = cv2.resize(x, (28, 28), interpolation=cv2.INTER_AREA)
+    st.write(x.shape)
+
+        #make prediction
