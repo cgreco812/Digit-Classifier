@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 #Load in the model
-
+clt = get_classifier()
 model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
 # Specify canvas parameters in application
 drawing_mode = st.sidebar.selectbox(
@@ -52,24 +52,27 @@ if canvas_result.json_data is not None:
         objects[col] = objects[col].astype("str")
     st.dataframe(objects)
 if st.button("Guess"):
-    #get canvas data and convert it to a numpy array
-    canvas_numpy_array = np.array(canvas_result.image_data)
-    #convert it to gray scale
-    x = np.dot(canvas_numpy_array[...,:3], [0.2989, 0.5870, 0.1140])
+    #read canvas data as grayscale image
+    canvas_image = np.array(canvas_result.image_data)
+
+    #convert to grayscale
+    gray_scale = cv2.cvtColor(canvas_image, cv2.COLOR_RGBA2GRAY)
+    st.write(gray_scale.shape)
     #resize image
-    x = cv2.resize(x, (28, 28), interpolation=cv2.INTER_AREA)
-    image = x
-    st.write(image.shape)
+    img_resized = cv2.resize(gray_scale, (28, 28), interpolation=cv2.INTER_AREA)
+    img_resized = cv2.bitwise_not(img_resized)
+
     fig = plt.figure(figsize=(28, 28))
-    plt.imshow(x, cmap='gray')
+    plt.imshow(img_resized,cmap='gray')
     st.write(fig)
     #expand to correct shape
-    #x = np.expand_dims(x/255,2)
-    x = np.expand_dims(x,0)
-    st.write(x.shape)
+    img_reshaped = np.expand_dims(img_resized/255,2)
+    img_reshaped = np.expand_dims(img_reshaped,0)
+    st.write(img_reshaped.shape)
     #make prediction
-    y_pred = model.predict(x)
-    #y_pred = np.argmax(y_pred, axis=1)
+    y_pred = model.predict(img_reshaped)
+    y_pred = np.argmax(y_pred, axis=1)
+
     st.write(y_pred)
 
 
