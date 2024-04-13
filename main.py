@@ -22,8 +22,6 @@ stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 3)
 if drawing_mode == 'point':
     point_display_radius = st.sidebar.slider("Point display radius: ", 1, 25, 3)
 stroke_color = st.sidebar.color_picker("Stroke color hex: ")
-bg_color = st.sidebar.color_picker("Background color hex: ", "#eee")
-bg_image = st.sidebar.file_uploader("Background image:", type=["png", "jpg"])
 
 realtime_update = st.sidebar.checkbox("Update in realtime", True)
 
@@ -33,8 +31,7 @@ canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
     stroke_width=stroke_width,
     stroke_color=stroke_color,
-    background_color=bg_color,
-    background_image=Image.open(bg_image) if bg_image else None,
+    background_color='white',
     update_streamlit=realtime_update,
     height=280,
     width=280,
@@ -43,37 +40,37 @@ canvas_result = st_canvas(
     key="canvas",
 )
 
-# Do something interesting with the image data and paths
-if canvas_result.image_data is not None:
-    st.image(canvas_result.image_data)
-if canvas_result.json_data is not None:
-    objects = pd.json_normalize(canvas_result.json_data["objects"]) # need to convert obj to str because PyArrow
-    for col in objects.select_dtypes(include=['object']).columns:
-        objects[col] = objects[col].astype("str")
-    st.dataframe(objects)
+
+#if canvas_result.image_data is not None:
+#    st.image(canvas_result.image_data)
+#if canvas_result.json_data is not None:
+#    objects = pd.json_normalize(canvas_result.json_data["objects"]) # need to convert obj to str because PyArrow
+#    for col in objects.select_dtypes(include=['object']).columns:
+#       objects[col] = objects[col].astype("str")
+#    st.dataframe(objects)
+
+
 if st.button("Guess"):
-    #read canvas data as grayscale image
-    canvas_image = np.array(canvas_result.image_data)
+    if canvas_result.image_data is not None:
+        #read canvas data as grayscale image
+        canvas_image = np.array(canvas_result.image_data)
 
-    #convert to grayscale
-    gray_scale = cv2.cvtColor(canvas_image, cv2.COLOR_RGBA2GRAY)
-    st.write(gray_scale.shape)
-    #resize image
-    img_resized = cv2.resize(gray_scale, (28, 28), interpolation=cv2.INTER_AREA)
-    img_resized = cv2.bitwise_not(img_resized)
+        #convert to grayscale
+        gray_scale = cv2.cvtColor(canvas_image, cv2.COLOR_RGBA2GRAY)
+        #Make the background black to match the format of the dataset
+        img_reversed = cv2.bitwise_not(gray_scale)
+        st.image(img_reversed) #show the image reversed
 
-    fig = plt.figure(figsize=(28, 28))
-    plt.imshow(img_resized,cmap='gray')
-    st.write(fig)
-    #expand to correct shape
-    img_reshaped = np.expand_dims(img_resized/255,2)
-    img_reshaped = np.expand_dims(img_reshaped,0)
-    st.write(img_reshaped.shape)
-    #make prediction
-    y_pred = model.predict(img_reshaped)
-    y_pred = np.argmax(y_pred, axis=1)
-
-    st.write(y_pred)
-
+        #reduce the size
+        img_resized = cv2.resize(img_reversed, (28, 28), interpolation=cv2.INTER_AREA)
+        
+        #expand to correct shape
+        img_reshaped = np.expand_dims(img_resized/255,2)
+        img_reshaped = np.expand_dims(img_reshaped,0)
 
         #make prediction
+        y_pred = model.predict(img_reshaped)
+        y_pred = np.argmax(y_pred, axis=1)
+
+        st.write(f'I think you drew a {y_pred}')
+
