@@ -9,10 +9,10 @@ import os as os
 import cv2
 import matplotlib.pyplot as plt
 
-
+#st.session_state.model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
 #Load in the model
-clt = get_classifier()
-model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
+if 'model' not in st.session_state:
+    st.session_state.model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
 # Specify canvas parameters in application
 drawing_mode = st.sidebar.selectbox(
     "Drawing tool:", ("freedraw", "point", "line", "rect", "circle", "transform")
@@ -69,7 +69,7 @@ if st.button("Guess"):
         img_reshaped = np.expand_dims(img_reshaped,0)
 
         #make prediction
-        y_pred = model.predict(img_reshaped)
+        y_pred =st.session_state.model.predict(img_reshaped)
         y_pred = np.argmax(y_pred, axis=1)
 
         st.write(f'I think you drew a {y_pred}')
