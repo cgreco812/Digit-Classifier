@@ -14,29 +14,21 @@ import matplotlib.pyplot as plt
 if 'model' not in st.session_state:
     st.session_state.model = load_model(os.path.join('models','idgitclassifiermodel.h5'))
 # Specify canvas parameters in application
-drawing_mode = st.sidebar.selectbox(
-    "Drawing tool:", ("freedraw", "point", "line", "rect", "circle", "transform")
-)
+stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 12)
 
-stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 3)
-if drawing_mode == 'point':
-    point_display_radius = st.sidebar.slider("Point display radius: ", 1, 25, 3)
 stroke_color = st.sidebar.color_picker("Stroke color hex: ")
 
-realtime_update = st.sidebar.checkbox("Update in realtime", True)
 
-
+st.title("Hand Writing Digit Classifier")
 # Create a canvas component
 canvas_result = st_canvas(
     fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
     stroke_width=stroke_width,
     stroke_color=stroke_color,
     background_color='white',
-    update_streamlit=realtime_update,
     height=280,
     width=280,
-    drawing_mode=drawing_mode,
-    point_display_radius=point_display_radius if drawing_mode == 'point' else 0,
+    drawing_mode="freedraw",
     key="canvas",
 )
 
