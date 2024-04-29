@@ -3,7 +3,6 @@ from PIL import Image
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 import numpy as np
-from digitclassifier import get_classifier
 from tensorflow.keras.models import load_model
 import os as os
 import cv2
